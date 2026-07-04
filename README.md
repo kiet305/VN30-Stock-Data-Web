@@ -130,7 +130,143 @@ Quy trình dùng thường ngày:
 4. Mở `http://localhost:4173`.
 5. Nếu web chưa hiện dữ liệu mới, tải lại trang hoặc kiểm tra API tại `http://localhost:8000/docs`.
 
-## 5. Chạy web local khi không dùng Docker
+## 5. Trading Agents: cấu hình và chạy báo cáo AI
+
+Module `TradingAgents/` dùng để tạo báo cáo phân tích AI cho từng mã cổ phiếu. Trong project này entrypoint chính là `TradingAgents/main.py`; luồng đang kích hoạt gồm:
+
+```text
+Market Analyst -> Fundamentals Analyst -> Sentiment Analyst -> News Analyst -> Bull/Bear Debate -> Coordinator
+```
+
+Kết quả được lưu dưới dạng Markdown trong `TradingAgents/reports/`. Backend web đọc thư mục này để hiển thị ở tab báo cáo phân tích AI.
+
+### 5.1. Chuẩn bị cấu hình
+
+Tạo file `.env` từ file mẫu và điền API key của provider muốn dùng. Không commit file `.env` lên GitHub.
+
+```powershell
+cd "VN30 Stock Data Web\TradingAgents"
+copy .env.example .env
+```
+
+Ví dụ cấu hình tối thiểu trong `TradingAgents\.env`:
+
+```env
+OPENAI_API_KEY=your_openai_key
+TRADINGAGENTS_OUTPUT_LANGUAGE=Vietnamese
+TRADINGAGENTS_LLM_PROVIDER=openai
+TRADINGAGENTS_DEEP_THINK_LLM=gpt-4.1
+TRADINGAGENTS_QUICK_THINK_LLM=gpt-4.1
+TRADINGAGENTS_TEMPERATURE=0.0
+```
+
+Nếu dùng provider khác, điền biến tương ứng như `GOOGLE_API_KEY`, `ANTHROPIC_API_KEY`, `DEEPSEEK_API_KEY`, `DASHSCOPE_API_KEY`, `OPENROUTER_API_KEY`, rồi truyền `--provider` phù hợp khi chạy.
+
+TradingAgents có thể đọc dữ liệu thị trường từ PostgreSQL warehouse của project. Khi chạy local cùng máy với Docker PostgreSQL mặc định, có thể dùng cấu hình:
+
+```env
+TRADINGAGENTS_WAREHOUSE_POSTGRES_HOST=localhost
+TRADINGAGENTS_WAREHOUSE_POSTGRES_PORT=5400
+TRADINGAGENTS_WAREHOUSE_POSTGRES_DB=postgres
+TRADINGAGENTS_WAREHOUSE_POSTGRES_USER=admin
+TRADINGAGENTS_WAREHOUSE_POSTGRES_PASSWORD=change_me
+TRADINGAGENTS_WAREHOUSE_SCHEMA=warehouse
+```
+
+Nếu chạy TradingAgents trong container và PostgreSQL ở host Windows, dùng `host.docker.internal` cho `TRADINGAGENTS_WAREHOUSE_POSTGRES_HOST`.
+
+### 5.2. Cài thư viện
+
+Khuyến nghị dùng virtual environment riêng:
+
+```powershell
+cd "VN30 Stock Data Web\TradingAgents"
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -e .
+```
+
+### 5.3. Chạy báo cáo AI đầy đủ
+
+Ví dụ tạo báo cáo cho mã `HPG` tại ngày phân tích `2026-01-29`:
+
+```powershell
+cd "VN30 Stock Data Web\TradingAgents"
+.\.venv\Scripts\Activate.ps1
+
+python main.py `
+  --ticker HPG `
+  --date 2026-01-29 `
+  --provider openai `
+  --model gpt-4.1 `
+  --look-back-days 7 `
+  --max-steps 8 `
+  --debate-rounds 2
+```
+
+Sau khi chạy xong, file tổng hợp sẽ nằm tại:
+
+```text
+TradingAgents/reports/HPG_research_synthesis_main_2026-01-29.md
+```
+
+Các report analyst trung gian cũng được lưu trong `TradingAgents/reports/`, ví dụ market, fundamentals, news và sentiment. Khi mở web dashboard, tab báo cáo AI sẽ đọc các file Markdown này.
+
+### 5.4. Chạy lại nhanh bằng report analyst có sẵn
+
+Nếu đã có đủ report analyst trong `TradingAgents/reports/` và chỉ muốn chạy lại phần Bull/Bear debate:
+
+```powershell
+python main.py `
+  --ticker HPG `
+  --date 2026-01-29 `
+  --provider openai `
+  --model gpt-4.1 `
+  --reuse-analyst-reports
+```
+
+Tuỳ chọn này tiết kiệm token và thời gian vì không gọi lại 4 analyst agent.
+
+### 5.5. Chạy từng analyst riêng lẻ
+
+Có thể chạy riêng từng agent để kiểm tra lỗi hoặc tạo từng phần báo cáo:
+
+```powershell
+python scripts\run_market_llm_agent.py --ticker HPG --date 2026-01-29 --provider openai --model gpt-4.1
+python scripts\run_fundamentals_llm_agent.py --ticker HPG --date 2026-01-29 --provider openai --model gpt-4.1
+python scripts\run_news_llm_agent.py --ticker HPG --date 2026-01-29 --provider openai --model gpt-4.1
+python scripts\run_sentiment_llm_agent.py --ticker HPG --date 2026-01-29 --provider openai --model gpt-4.1
+```
+
+Nếu chỉ cần báo cáo kỹ thuật deterministic từ warehouse, không gọi LLM:
+
+```powershell
+python scripts\warehouse_market_agent.py --ticker HPG --date 2026-01-29
+```
+
+### 5.6. Thêm phản hồi thủ công cho lần chạy sau
+
+Nếu muốn lưu nhận xét để các lần tổng hợp sau tham khảo:
+
+```powershell
+python scripts\add_research_feedback.py `
+  --ticker HPG `
+  --date 2026-01-29 `
+  --issue "Báo cáo cần nhấn mạnh rủi ro biên lợi nhuận thép." `
+  --correction "Khi tổng hợp, so sánh thêm xu hướng giá nguyên liệu và sản lượng tiêu thụ."
+```
+
+Feedback mặc định được lưu trong thư mục người dùng `~/.tradingagents/`. Có thể truyền `--feedback-path` cho `main.py` nếu muốn dùng file JSONL riêng.
+
+### 5.7. Lỗi thường gặp
+
+- Thiếu API key: kiểm tra file `TradingAgents\.env` hoặc biến môi trường tương ứng với `--provider`.
+- Không kết nối được warehouse: kiểm tra PostgreSQL container, port `5400` và các biến `TRADINGAGENTS_WAREHOUSE_*`.
+- Web chưa hiện report mới: kiểm tra file `.md` đã nằm trong `TradingAgents/reports/`, sau đó tải lại dashboard.
+- Muốn tránh commit report sinh ra: thư mục `TradingAgents/reports/*` đã được ignore, chỉ giữ `.gitkeep`.
+
+## 6. Chạy web local khi không dùng Docker
 
 Backend:
 
@@ -156,7 +292,7 @@ http://localhost:5173
 
 Nếu giao diện báo lỗi CORS, kiểm tra biến `CORS_ORIGINS` trong backend `.env` hoặc trong `deploy-web/docker-compose.yml`.
 
-## 6. Xem file MinIO bằng MinIO File Viewer
+## 7. Xem file MinIO bằng MinIO File Viewer
 
 Viewer này chỉ dùng để xem nhanh cấu trúc file local trong thư mục MinIO, không thay thế bảng điều khiển MinIO Console.
 
@@ -181,7 +317,7 @@ Các thao tác trong viewer:
 - Bật công tắc metadata nếu cần xem cả `.minio.sys`.
 - Bấm làm mới sau khi Dagster vừa ghi dữ liệu mới.
 
-## 7. Bật Dagster
+## 8. Bật Dagster
 
 Cách khuyến nghị:
 
@@ -209,7 +345,7 @@ Sau đó mở:
 http://127.0.0.1:3000
 ```
 
-## 8. Crawl dữ liệu tin tức bằng Dagster UI
+## 9. Crawl dữ liệu tin tức bằng Dagster UI
 
 Asset crawl tin tức chính:
 
@@ -250,7 +386,7 @@ ops:
 4. Chạy materialize và chờ run hoàn tất.
 5. Tải lại bảng điều khiển web để xem tin mới.
 
-## 9. Crawl dữ liệu bằng CLI
+## 10. Crawl dữ liệu bằng CLI
 
 Chạy từ thư mục `etl_pipeline`:
 
@@ -279,7 +415,7 @@ dagster asset materialize `
 
 Gợi ý khi chạy thử nhanh: giảm `vietcap_max_rounds`, `vietcap_idle_rounds_to_stop` và `vietstock_max_pages` để chạy nhanh hơn.
 
-## 10. Kiểm tra dữ liệu sau khi crawl
+## 11. Kiểm tra dữ liệu sau khi crawl
 
 Kiểm tra run trong Dagster:
 
@@ -316,7 +452,7 @@ select source, count(*) from warehouse.warehouse_news group by source order by s
 select * from warehouse.warehouse_news order by date_posted desc limit 10;
 ```
 
-## 11. Lỗi thường gặp
+## 12. Lỗi thường gặp
 
 Port đã được dùng:
 
@@ -353,7 +489,7 @@ Crawler chạy lâu:
 - Với Vietstock, giảm `vietstock_max_pages`.
 - Khi chạy chính thức, dùng giá trị lớn hơn để tránh thiếu bài.
 
-## 12. Tắt dịch vụ
+## 13. Tắt dịch vụ
 
 Tắt web deploy:
 
