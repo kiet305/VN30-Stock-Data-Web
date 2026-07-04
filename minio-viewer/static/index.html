@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MinIO File Viewer</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Local MinIO</p>
+          <h1>MinIO File Viewer</h1>
+        </div>
+        <div class="root-pill" id="rootPath">Đang tải...</div>
+        <button class="icon-button" id="refreshButton" type="button" title="Làm mới">
+          <span class="refresh-icon"></span>
+        </button>
+      </header>
+
+      <main class="workspace">
+        <aside class="sidebar">
+          <section class="panel compact">
+            <div class="panel-title">
+              <h2>Tổng quan</h2>
+              <label class="toggle" title="Hiện metadata MinIO">
+                <input id="includeSystem" type="checkbox" />
+                <span></span>
+              </label>
+            </div>
+            <div class="stats-grid">
+              <div>
+                <span id="bucketCount">0</span>
+                <label>bucket</label>
+              </div>
+              <div>
+                <span id="fileCount">0</span>
+                <label>file</label>
+              </div>
+              <div>
+                <span id="dirCount">0</span>
+                <label>thư mục</label>
+              </div>
+              <div>
+                <span id="totalSize">0 B</span>
+                <label>dung lượng</label>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel buckets-panel">
+            <div class="panel-title">
+              <h2>Bucket</h2>
+            </div>
+            <div class="bucket-list" id="bucketList"></div>
+          </section>
+        </aside>
+
+        <section class="browser">
+          <div class="browser-toolbar">
+            <div class="breadcrumbs" id="breadcrumbs"></div>
+            <div class="toolbar-actions">
+              <select id="treeDepth" title="Độ sâu cây">
+                <option value="1">1 tầng</option>
+                <option value="2" selected>2 tầng</option>
+                <option value="3">3 tầng</option>
+                <option value="5">5 tầng</option>
+              </select>
+              <button id="expandDepthButton" type="button">Mở cây</button>
+            </div>
+          </div>
+
+          <div class="searchbar">
+            <span class="search-icon"></span>
+            <input id="searchInput" type="search" placeholder="Tìm file, thư mục hoặc path..." />
+          </div>
+
+          <div class="tree-area" id="treeArea">
+            <div class="empty-state">Đang tải cấu trúc...</div>
+          </div>
+        </section>
+
+        <aside class="details panel">
+          <div class="panel-title">
+            <h2>Chi tiết</h2>
+          </div>
+          <div id="detailsContent" class="details-content">
+            <div class="empty-state">Chọn một item để xem thông tin.</div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

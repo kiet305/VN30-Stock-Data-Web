@@ -1,0 +1,15 @@
+**
+!deploy-web/
+!deploy-web/backend/
+!deploy-web/backend/**
+!TradingAgents/
+!TradingAgents/**
+
+TradingAgents/.codex-home/**
+TradingAgents/.web-logs/**
+TradingAgents/reports/**
+TradingAgents/results/**
+**/__pycache__/**
+**/.pytest_cache/**
+**/.mypy_cache/**
+**/.ruff_cache/**

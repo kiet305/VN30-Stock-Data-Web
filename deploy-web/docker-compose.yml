@@ -1,0 +1,67 @@
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy-web/backend/Dockerfile
+    container_name: deploy-web-backend
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      POSTGRES_HOST: host.docker.internal
+      POSTGRES_PORT: 5400
+      POSTGRES_DB: postgres
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: change_me
+      POSTGRES_SCHEMA: warehouse
+      POSTGRES_TABLE: warehouse_prices_1d
+      TREND_DATA_DIR: /app/trend
+      TREND_DATA_FILE: trending_VN_7d_20260515-2137.csv
+      TREND_SPARKLINE_FILE: trends (2).xlsx
+      SOCIAL_DATA_FILE: social.csv
+      CORS_ORIGINS: http://localhost:4173,http://localhost:5173
+      TRADINGAGENTS_SOURCE_DIR: /app/TradingAgents
+      TRADINGAGENTS_REPORTS_DIR: /app/TradingAgents/reports
+      TRADINGAGENTS_LOGS_DIR: /app/tradingagents-logs
+      TRADINGAGENTS_PROVIDER: ${TRADINGAGENTS_PROVIDER:-openai}
+      TRADINGAGENTS_MODEL: ${TRADINGAGENTS_MODEL:-gpt-4.1}
+      TRADINGAGENTS_WAREHOUSE_POSTGRES_HOST: host.docker.internal
+      TRADINGAGENTS_WAREHOUSE_POSTGRES_PORT: 5400
+      TRADINGAGENTS_WAREHOUSE_POSTGRES_DB: postgres
+      TRADINGAGENTS_WAREHOUSE_POSTGRES_USER: admin
+      TRADINGAGENTS_WAREHOUSE_POSTGRES_PASSWORD: change_me
+      TRADINGAGENTS_WAREHOUSE_SCHEMA: warehouse
+    volumes:
+      - type: bind
+        source: ../trend
+        target: /app/trend
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ../TradingAgents
+        target: /app/TradingAgents
+        read_only: false
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ../TradingAgents/.web-logs
+        target: /app/tradingagents-logs
+        read_only: false
+    ports:
+      - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8000
+    container_name: deploy-web-frontend
+    depends_on:
+      - backend
+    ports:
+      - "4173:80"

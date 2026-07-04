@@ -1,0 +1,5 @@
+interface:
+  display_name: "TradingAgents Research Flow"
+  short_description: "Run the Codex-backed stock research synthesis flow."
+  default_prompt: "Run the TradingAgents research flow for ticker VRE on 2026-01-29 using provider codex."
+

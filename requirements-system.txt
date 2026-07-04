@@ -1,0 +1,24 @@
+# Aggregated runtime requirements for the maintained workflow.
+
+# ETL / Dagster
+dagster==1.13.10
+dagster-cloud==1.13.10
+dagster-webserver==1.13.10
+dagster-postgres==0.29.10
+pandas==2.3.3
+requests
+pyarrow==24.0.0
+minio==7.2.20
+psycopg2-binary==2.9.12
+vnstock==4.0.4
+
+# Web backend
+fastapi==0.137.2
+uvicorn[standard]==0.49.0
+sqlalchemy==2.0.51
+pydantic-settings==2.14.1
+openpyxl==3.1.5
+
+# Optional AI reporting
+-e ./TradingAgents
+-e ./etl_pipeline

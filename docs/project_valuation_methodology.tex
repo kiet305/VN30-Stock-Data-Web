@@ -1,0 +1,266 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\geometry{margin=2.5cm}
+\setlist[itemize]{leftmargin=1.2cm}
+\setlist[enumerate]{leftmargin=1.2cm}
+
+\title{\textbf{Phương pháp định giá cổ phiếu trong hệ thống}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Mục tiêu định giá}
+
+Mục tiêu của mô hình định giá trong project là chuẩn hóa dữ liệu thị trường và dữ liệu tài chính doanh nghiệp thành một tập chỉ tiêu có thể so sánh theo thời gian, giữa các cổ phiếu và giữa các nhóm ngành. Trọng tâm của hệ thống không phải là đưa ra một mức giá mục tiêu duy nhất, mà là xây dựng cơ sở dữ liệu định giá nhất quán để đánh giá cổ phiếu dựa trên lợi nhuận, giá trị sổ sách, quy mô vốn hóa và mặt bằng định giá ngành.
+
+Về mặt kinh tế, cổ phiếu có giá trị vì nó đại diện cho quyền sở hữu đối với phần lợi ích còn lại của doanh nghiệp sau khi đã thực hiện nghĩa vụ với chủ nợ và các bên liên quan khác. Do đó, giá trị cổ phiếu được hình thành từ hai nhóm cơ sở chính: khả năng tạo lợi nhuận trong tương lai và giá trị tài sản ròng thuộc về cổ đông. Trong project, hai khía cạnh này lần lượt được lượng hóa thông qua EPS trailing, BVPS, P/E, P/B và các chỉ tiêu sinh lời như ROE, ROA, ROS, NIM.
+
+\section{Dữ liệu đầu vào}
+
+Luồng định giá sử dụng các nhóm dữ liệu chính sau:
+
+\begin{itemize}
+    \item Dữ liệu giá ngày từ tầng Gold prices 1D, bao gồm giá đóng cửa, vốn hóa thị trường, số cổ phiếu lưu hành điều chỉnh và các chỉ tiêu định giá theo ngày.
+    \item Dữ liệu báo cáo tài chính từ tầng Gold reports, đã được chuẩn hóa theo nhóm báo cáo kết quả kinh doanh, cân đối kế toán và lưu chuyển tiền tệ.
+    \item Dữ liệu ticker metric từ tầng Gold, bao gồm số cổ phiếu lưu hành, vốn hóa, P/E, P/B, EPS, BVPS và các chỉ tiêu so sánh ngành.
+    \item Dữ liệu sự kiện doanh nghiệp, đặc biệt là các sự kiện ảnh hưởng đến giá và số lượng cổ phiếu như chia cổ tức, thưởng cổ phiếu, phát hành thêm và quyền mua.
+\end{itemize}
+
+Các chỉ tiêu tài chính được chuẩn hóa theo quý. Với các biến phản ánh kết quả kinh doanh, hệ thống ưu tiên cách tính trailing twelve months (TTM) nhằm làm giảm nhiễu mùa vụ và phản ánh năng lực tạo lợi nhuận gần nhất của doanh nghiệp.
+
+\section{Cơ sở toán học}
+
+\subsection{Nguyên lý giá trị hiện tại}
+
+Về mặt tài chính, giá trị nội tại của một tài sản bằng giá trị hiện tại của các lợi ích kinh tế mà tài sản đó có thể tạo ra trong tương lai. Với cổ phiếu, lợi ích này có thể biểu hiện dưới dạng cổ tức, dòng tiền còn lại cho cổ đông hoặc giá trị bán lại trong tương lai. Dạng tổng quát của mô hình định giá là:
+
+\begin{equation}
+    V_0 = \sum_{t=1}^{\infty} \frac{CF_t}{(1+r)^t}
+\end{equation}
+
+Trong đó $V_0$ là giá trị hiện tại của cổ phiếu, $CF_t$ là dòng tiền kỳ vọng dành cho cổ đông tại thời điểm $t$, và $r$ là tỷ suất sinh lợi yêu cầu. Công thức này cho thấy cổ phiếu có giá trị vì nó gắn với quyền nhận lợi ích kinh tế trong tương lai, không chỉ vì nó có giá giao dịch trên thị trường.
+
+Trong trường hợp doanh nghiệp chi trả cổ tức ổn định và tăng trưởng dài hạn với tốc độ $g$, mô hình Gordon có dạng:
+
+\begin{equation}
+    P_0 = \frac{D_1}{r-g}
+\end{equation}
+
+Với $D_1$ là cổ tức kỳ vọng năm tới. Mặc dù project không trực tiếp định giá bằng mô hình chiết khấu cổ tức, công thức này là nền tảng để diễn giải các bội số như P/E và P/B. Khi lợi nhuận tăng trưởng cao hơn, rủi ro thấp hơn hoặc tỷ suất sinh lợi yêu cầu giảm, mức định giá hợp lý của cổ phiếu có xu hướng cao hơn.
+
+\subsection{Liên hệ giữa P/E và tăng trưởng lợi nhuận}
+
+Nếu giả định doanh nghiệp chi trả một tỷ lệ lợi nhuận cố định dưới dạng cổ tức, ta có:
+
+\begin{equation}
+    D_1 = EPS_1 \times Payout
+\end{equation}
+
+Kết hợp với mô hình Gordon:
+
+\begin{equation}
+    \frac{P_0}{EPS_1} = \frac{Payout}{r-g}
+\end{equation}
+
+Do đó, P/E không chỉ là một tỷ số thị trường, mà còn phản ánh đồng thời ba yếu tố: tỷ lệ phân phối lợi nhuận, tốc độ tăng trưởng kỳ vọng và mức rủi ro của doanh nghiệp. Một cổ phiếu có P/E cao vẫn có thể hợp lý nếu tăng trưởng lợi nhuận bền vững và rủi ro thấp. Ngược lại, P/E thấp không tự động hàm ý cổ phiếu rẻ nếu lợi nhuận suy giảm hoặc rủi ro cao.
+
+\subsection{Liên hệ giữa P/B và hiệu quả vốn chủ sở hữu}
+
+P/B có thể được diễn giải thông qua khả năng sinh lời trên vốn chủ sở hữu. Trong mô hình residual income, giá trị vốn chủ sở hữu phụ thuộc vào giá trị sổ sách hiện tại và phần lợi nhuận vượt trên chi phí vốn:
+
+\begin{equation}
+    V_0 = B_0 + \sum_{t=1}^{\infty}
+    \frac{(ROE_t-r) \times B_{t-1}}{(1+r)^t}
+\end{equation}
+
+Trong đó $B_0$ là giá trị sổ sách vốn chủ sở hữu, $ROE_t$ là tỷ suất sinh lời trên vốn chủ sở hữu và $r$ là chi phí vốn cổ phần. Khi $ROE > r$, doanh nghiệp tạo ra giá trị vượt chi phí vốn, vì vậy P/B có thể lớn hơn 1. Khi $ROE < r$, doanh nghiệp không tạo đủ lợi nhuận so với rủi ro vốn chủ sở hữu, vì vậy P/B hợp lý có thể thấp hơn 1.
+
+Với giả định tăng trưởng ổn định, quan hệ lý thuyết giữa P/B và ROE có thể viết dưới dạng:
+
+\begin{equation}
+    \frac{P_0}{B_0} = \frac{ROE-g}{r-g}
+\end{equation}
+
+Công thức này là cơ sở để project đặt P/B cạnh ROE, ROA và mặt bằng ngành thay vì diễn giải P/B một cách riêng lẻ.
+
+\subsection{Giá, vốn hóa và số cổ phiếu}
+
+Vốn hóa thị trường của một doanh nghiệp được xác định bởi:
+
+\begin{equation}
+    MarketCap_{i,t} = Price_{i,t} \times Shares_{i,t}
+\end{equation}
+
+Trong đó $Price_{i,t}$ là giá thị trường của cổ phiếu $i$ tại thời điểm $t$, còn $Shares_{i,t}$ là số cổ phiếu lưu hành được sử dụng cho tính toán vốn hóa. Khi cần suy ra giá từ dữ liệu vốn hóa và số cổ phiếu, project sử dụng:
+
+\begin{equation}
+    Price_{i,t} = \frac{MarketCap_{i,t}}{Shares_{i,t}}
+\end{equation}
+
+Số cổ phiếu lưu hành được lấy từ ticker metric và được làm tròn về số nguyên. Với dữ liệu giá ngày, số cổ phiếu được điều chỉnh theo các sự kiện có ảnh hưởng đến lượng cổ phiếu lưu hành, bảo đảm rằng EPS, BVPS, P/E và P/B không bị sai lệch do thay đổi cơ học của vốn cổ phần.
+
+\subsection{EPS trailing}
+
+Lợi nhuận trailing được tính trên bốn quý gần nhất:
+
+\begin{equation}
+    ProfitTTM_{i,q} = \sum_{k=0}^{3} Profit_{i,q-k}
+\end{equation}
+
+EPS trailing được tính bằng lợi nhuận TTM chia cho số cổ phiếu lưu hành:
+
+\begin{equation}
+    EPS_{i,q} = \frac{ProfitTTM_{i,q}}{Shares_{i,q}}
+\end{equation}
+
+Trong dữ liệu báo cáo, lợi nhuận thường được lưu theo đơn vị tỷ đồng, trong khi giá cổ phiếu thường được hiển thị theo nghìn đồng. Vì vậy, hệ thống có bước điều chỉnh đơn vị khi đưa EPS về cùng hệ quy chiếu với giá:
+
+\begin{equation}
+    EPS^{adj}_{i,q} = \frac{ProfitTTM_{i,q}}{Shares_{i,q}} \times 10^9
+\end{equation}
+
+\subsection{BVPS}
+
+Giá trị sổ sách trên mỗi cổ phiếu được tính từ vốn chủ sở hữu:
+
+\begin{equation}
+    BVPS_{i,q} = \frac{Equity_{i,q}}{Shares_{i,q}}
+\end{equation}
+
+Tương tự EPS, hệ thống điều chỉnh đơn vị để BVPS có thể so sánh trực tiếp với giá:
+
+\begin{equation}
+    BVPS^{adj}_{i,q} = \frac{Equity_{i,q}}{Shares_{i,q}} \times 10^9
+\end{equation}
+
+\subsection{P/E và P/B}
+
+P/E đo lường số lần nhà đầu tư đang trả cho một đơn vị lợi nhuận trên mỗi cổ phiếu:
+
+\begin{equation}
+    PE_{i,t} = \frac{Price_{i,t}}{EPS_{i,t}}
+\end{equation}
+
+P/B đo lường số lần nhà đầu tư đang trả cho một đơn vị giá trị sổ sách trên mỗi cổ phiếu:
+
+\begin{equation}
+    PB_{i,t} = \frac{Price_{i,t}}{BVPS_{i,t}}
+\end{equation}
+
+Trong Gold prices 1D, để đồng bộ với đơn vị giá giao dịch và đơn vị EPS/BVPS sau chuẩn hóa, hệ thống sử dụng:
+
+\begin{equation}
+    PE_{i,t} = \frac{Close_{i,t}}{EPS^{adj}_{i,t}} \times 1000
+\end{equation}
+
+\begin{equation}
+    PB_{i,t} = \frac{Close_{i,t}}{BVPS^{adj}_{i,t}} \times 1000
+\end{equation}
+
+Các chỉ tiêu này chỉ được tính khi mẫu số khác 0 và không bị thiếu dữ liệu.
+
+\section{Định giá tương đối theo ngành}
+
+Do đặc điểm lợi nhuận, cấu trúc tài sản và chu kỳ kinh doanh khác nhau giữa các ngành, project không so sánh cổ phiếu độc lập mà bổ sung mặt bằng ngành. Với mỗi ngành $s$, hệ thống tổng hợp dữ liệu theo quý:
+
+\begin{equation}
+    PE^{industry}_{s,q}
+    =
+    \frac{\sum_{i \in s} MarketCap_{i,q} / 10^9}
+    {\sum_{i \in s} ProfitTTM_{i,q}}
+\end{equation}
+
+\begin{equation}
+    PB^{industry}_{s,q}
+    =
+    \frac{\sum_{i \in s} MarketCap_{i,q} / 10^9}
+    {\sum_{i \in s} Equity_{i,q}}
+\end{equation}
+
+Ngoài P/E và P/B ngành, project còn tính các chỉ tiêu chất lượng lợi nhuận và hiệu quả sử dụng vốn:
+
+\begin{equation}
+    ROE_{s,q} = \frac{\sum_{i \in s} Profit_{i,q}}{\sum_{i \in s} AvgEquity_{i,q}}
+\end{equation}
+
+\begin{equation}
+    ROA_{s,q} = \frac{\sum_{i \in s} Profit_{i,q}}{\sum_{i \in s} AvgAssets_{i,q}}
+\end{equation}
+
+\begin{equation}
+    ROS_{s,q} = \frac{\sum_{i \in s} Profit_{i,q}}{\sum_{i \in s} Revenue_{i,q}}
+\end{equation}
+
+Với ngân hàng và nhóm dịch vụ tài chính, hệ thống ưu tiên các chỉ tiêu phù hợp với đặc thù báo cáo tài chính của ngành. Một số chỉ tiêu như ROS có thể không được sử dụng nếu không phản ánh đúng bản chất hoạt động.
+
+\section{Nguyên tắc diễn giải tín hiệu định giá}
+
+Project không xem một chỉ tiêu đơn lẻ là đủ để kết luận cổ phiếu đắt hay rẻ. Thay vào đó, các bội số định giá được đọc cùng với chất lượng lợi nhuận và mặt bằng ngành:
+
+\begin{itemize}
+    \item P/E thấp hơn ngành có thể là tín hiệu hấp dẫn nếu EPS trailing ổn định và ROE không suy giảm.
+    \item P/B thấp hơn ngành có thể là tín hiệu giá trị nếu BVPS đáng tin cậy và doanh nghiệp vẫn tạo ROE lớn hơn chi phí vốn.
+    \item P/E hoặc P/B cao hơn ngành có thể được chấp nhận nếu doanh nghiệp có tăng trưởng lợi nhuận, hiệu quả vốn và biên lợi nhuận vượt trội.
+    \item Với doanh nghiệp tài chính, NIM, ROA, ROE và chất lượng tài sản quan trọng hơn các chỉ tiêu doanh thu thông thường.
+\end{itemize}
+
+Về mặt triển khai, hệ thống ưu tiên tính toán các biến nền tảng trước, sau đó mới suy ra bội số định giá. Trình tự này giúp hạn chế sai lệch do thiếu dữ liệu hoặc sai đơn vị:
+
+\begin{enumerate}
+    \item Chuẩn hóa lợi nhuận, vốn chủ sở hữu, tổng tài sản và các khoản mục báo cáo tài chính.
+    \item Tính lợi nhuận TTM, vốn chủ sở hữu, số cổ phiếu lưu hành và giá trị trên mỗi cổ phiếu.
+    \item Tính EPS, BVPS, P/E, P/B ở cấp cổ phiếu.
+    \item Tổng hợp theo ngành để tạo benchmark P/E, P/B, ROE, ROA, ROS và NIM.
+    \item Đưa kết quả về warehouse để phục vụ dashboard và phân tích.
+\end{enumerate}
+
+\section{Diễn giải giá trị cổ phiếu}
+
+Một cổ phiếu có giá trị vì người nắm giữ cổ phiếu có quyền hưởng phần giá trị còn lại của doanh nghiệp. Trong mô hình của project, giá trị này được biểu hiện qua ba lớp:
+
+\begin{enumerate}
+    \item \textbf{Giá trị lợi nhuận}: doanh nghiệp tạo ra lợi nhuận càng ổn định và tăng trưởng, EPS trailing càng cao. Khi thị trường chấp nhận trả một mức P/E hợp lý cho lợi nhuận đó, giá cổ phiếu có cơ sở tăng.
+    \item \textbf{Giá trị tài sản ròng}: vốn chủ sở hữu phản ánh phần tài sản thuộc về cổ đông. BVPS giúp đánh giá cổ phiếu đang giao dịch cao hay thấp so với nền tảng tài sản kế toán.
+    \item \textbf{Giá trị tương đối}: cùng một mức EPS hoặc BVPS, cổ phiếu có thể được định giá khác nhau tùy ngành, chất lượng lợi nhuận, kỳ vọng tăng trưởng và rủi ro. Vì vậy P/E, P/B riêng lẻ cần được đặt cạnh P/E, P/B ngành.
+\end{enumerate}
+
+Theo cách tiếp cận này, giá trị cổ phiếu không được hiểu là một con số tuyệt đối cố định. Giá trị là kết quả của mối quan hệ giữa lợi nhuận, tài sản, rủi ro, tăng trưởng và mức định giá mà thị trường đang chấp nhận.
+
+\section{Cách triển khai trong pipeline}
+
+Pipeline hiện tại triển khai định giá theo hướng nhất quán giữa dữ liệu ngày và dữ liệu quý:
+
+\begin{itemize}
+    \item Gold reports chuẩn hóa các khoản mục tài chính quan trọng, bao gồm lợi nhuận sau thuế, vốn chủ sở hữu, tổng tài sản, doanh thu và các khoản mục đặc thù cho doanh nghiệp tài chính.
+    \item Gold ticker metric lấy ngành từ overview, kết hợp reports để tính EPS, BVPS, ROE, ROA, ROS, NIM và các chỉ tiêu ngành.
+    \item Gold prices 1D kết hợp giá ngày với EPS trailing, BVPS và số cổ phiếu lưu hành để tính P/E, P/B theo từng ngày.
+    \item Warehouse lưu kết quả cuối cùng phục vụ dashboard, truy vấn và phân tích.
+\end{itemize}
+
+Cách tổ chức này giúp hệ thống vừa theo dõi được biến động định giá hằng ngày, vừa giữ được nền tảng tài chính theo quý. Khi có sự kiện doanh nghiệp làm thay đổi chuỗi giá hoặc số lượng cổ phiếu, dữ liệu Gold được cập nhật lại theo mã cổ phiếu để bảo đảm tính nhất quán lịch sử.
+
+\section{Giới hạn và hướng hoàn thiện}
+
+Phương pháp hiện tại thuộc nhóm định giá tương đối, vì vậy kết quả phụ thuộc vào chất lượng dữ liệu báo cáo, độ đầy đủ của sự kiện doanh nghiệp và tính hợp lý của mặt bằng ngành. Một số vấn đề cần tiếp tục theo dõi gồm:
+
+\begin{itemize}
+    \item Sai lệch đơn vị giữa giá thị trường, vốn hóa, lợi nhuận và vốn chủ sở hữu cần được kiểm soát bằng quy tắc chuẩn hóa rõ ràng.
+    \item Các mã thiếu báo cáo hoặc thiếu dữ liệu số cổ phiếu có thể làm EPS, BVPS, P/E và P/B bị thiếu.
+    \item Sự kiện chia tách, thưởng cổ phiếu hoặc phát hành thêm cần được cập nhật đầy đủ để tránh sai lệch chuỗi dữ liệu lịch sử.
+    \item Định giá tương đối chưa phản ánh trực tiếp chiết khấu dòng tiền, chi phí vốn và giả định tăng trưởng dài hạn.
+\end{itemize}
+
+Hướng hoàn thiện tiếp theo là bổ sung lớp kiểm tra chất lượng dữ liệu, cảnh báo các mã thiếu dữ liệu trọng yếu, và kết hợp thêm mô hình chiết khấu dòng tiền hoặc residual income để đối chiếu với kết quả định giá tương đối.
+
+\end{document}

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Market Intel"
+  short_description: "Research price action and market signals for a stock ticker."
+  default_prompt: "Create a market intel report for VRE on 2026-01-29."
+

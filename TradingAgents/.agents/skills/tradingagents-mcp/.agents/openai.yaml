@@ -1,0 +1,5 @@
+interface:
+  display_name: "TradingAgents MCP"
+  short_description: "Use local MCP tools for TradingAgents reports and project context."
+  default_prompt: "Use the TradingAgents MCP server to inspect available reports."
+

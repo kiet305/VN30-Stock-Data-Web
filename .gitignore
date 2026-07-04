@@ -1,0 +1,58 @@
+# Environment and secrets
+.env
+*.env
+!.env.example
+.codex/
+.codex-home/
+.agents/**/.env
+.agents/**/secrets.*
+.venv/
+.venv-*/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Node/Vite
+node_modules/
+dist/
+*.tsbuildinfo
+deploy-web/frontend/vite.config.js
+deploy-web/frontend/vite.config.d.ts
+
+# Runtime output
+*.log
+.codex_tmp*/
+*.tmp
+dagster_home/logs/
+dagster_home/compute_logs/
+dagster_home/local_artifact_storage/
+dagster_home/
+pgdata/
+postgresql/
+postgresql.backup-*/
+postgresql.broken-backup/
+minio/
+tmp/
+etl_pipeline/storage/
+etl_pipeline/compute_logs/
+TradingAgents/.web-logs/
+TradingAgents/reports/*
+!TradingAgents/reports/.gitkeep
+
+# Local experiments outside the web workflow
+/*.parquet
+/*.xlsx
+/test.ipynb
+/sentiment.py
+/model/
+
+# Local datasets and generated artifacts
+trend/*
+!trend/.gitkeep
+docs/*.csv
+deploy-web/frontend/public/assets/vn30_shareholders.json
