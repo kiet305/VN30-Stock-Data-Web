@@ -12,7 +12,7 @@ Dự án được xây dựng theo kiến trúc dữ liệu nhiều tầng để
 
 Hệ thống hướng tới việc hỗ trợ quá trình phân tích nhóm cổ phiếu VN30 và thị trường Việt Nam bằng một luồng dữ liệu có thể chạy lại, kiểm tra được và dễ mở rộng thêm nguồn dữ liệu mới.
 
-![Giao diện tổng quát hệ thống]<img width="1672" height="941" alt="giao_dien" src="https://github.com/user-attachments/assets/4e421b4e-e453-4305-b727-2b74aa08816c" />
+![Giao diện tổng quát hệ thống](<img width="1672" height="941" alt="giao_dien" src="https://github.com/user-attachments/assets/4e421b4e-e453-4305-b727-2b74aa08816c" />)
 
 ## Mục tiêu dự án
 
